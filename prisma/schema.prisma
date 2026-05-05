@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String   @default("student") // student, teacher, admin
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  progress  Progress[]
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  nameAr      String
+  nameEn      String?
+  code        String   @unique
+  semester    Int      // 1 or 2
+  isShared    Boolean  @default(false) // shared between semesters
+  category    String   // e.g., "تربوية", "لغوية", "منهجية"
+  description String?
+  driveLink   String?
+  icon        String?
+  color       String?
+  order       Int      @default(0)
+  progress    Progress[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Progress {
+  id        String   @id @default(cuid())
+  userId    String
+  subjectId String
+  status    String   @default("not_started") // not_started, in_progress, completed
+  progress  Int      @default(0) // 0-100
+  notes     String?
+  userIdRef User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, subjectId])
+}
